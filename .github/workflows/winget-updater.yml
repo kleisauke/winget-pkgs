@@ -1,0 +1,40 @@
+name: Update WinGet packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip-pr-check:
+        type: boolean
+        description: "Skip PR check"
+      dry-run:
+        type: boolean
+        description: "Dry run"
+
+jobs:
+  update:
+    name: Update package ${{ matrix.id }}
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: libvips.libvips
+            repo: libvips/build-win64-mxe
+            url: >-
+              https://github.com/libvips/build-win64-mxe/releases/download/v{VERSION}/vips-dev-x86-all-{VERSION}.zip
+              https://github.com/libvips/build-win64-mxe/releases/download/v{VERSION}/vips-dev-x64-all-{VERSION}.zip
+              https://github.com/libvips/build-win64-mxe/releases/download/v{VERSION}/vips-dev-arm64-all-{VERSION}.zip
+
+    steps:
+      - name: Update packages
+        uses: michidk/winget-updater@latest
+        env:
+          SKIP_PR_CHECK: ${{ inputs.skip-pr-check }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        with:
+          komac-version: "latest"
+          komac-token: ${{ secrets.KOMAC_TOKEN }}
+          identifier: ${{ matrix.id }}
+          repo: ${{ matrix.repo }}
+          url: '"${{ matrix.url }}"'
